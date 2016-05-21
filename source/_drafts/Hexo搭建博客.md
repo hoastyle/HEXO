@@ -120,7 +120,38 @@ deploy:
 ### 留言
 
 ### 博客访问
+#### 不蒜子
 [不蒜子](http://service.ibruce.info/)
+
++ themes/next/layout/_partials/footer.swig
+```
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+<span id="busuanzi_container_site_pv">
+  &nbsp; | &nbsp; 本站总访问量<span id="busuanzi_value_site_pv"></span>次
+</span>
+
+<span id="busuanzi_container_site_uv">
+  &nbsp; | &nbsp; 本站访客数<span id="busuanzi_value_site_uv"></span>人次
+</span> 
+```
+
++ themes/next/layout/_macro/post.swig
+在div class="post-meta"结尾添加
+```
+{% if not is_index and theme.busuanzi_count.enable and theme.busuanzi_count.page_pv %}                   
+	&nbsp; | &nbsp;                                                                                      
+	<span class="page-pv">{{ theme.busuanzi_count.page_pv_header }}                                      
+	<span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>{{ theme.busuanzi_count.page_pv_footer }}
+	</span>
+{% endif %}
+{% if not is_index %}
+    <span id="busuanzi_container_page_pv">  |  阅读量 <span id="busuanzi_value_page_pv"></span> 次</span>
+{% endif %}
+```
+
+> 注意："&nbsp;"是html中空格的意思
+
 
 ### 其他各种插件
 
