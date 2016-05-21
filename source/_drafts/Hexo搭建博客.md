@@ -112,12 +112,20 @@ deploy:
 站点地址２ | 放置在 source/images/ 目录下, 配置为：avatar: /images/avatar.png
 
 ### 主题风格设置
+mist
 
 ### 新建page
 
 ### tag
 
-### 留言
+### 留言评论
+[多说](https://github.com/iissnan/hexo-theme-next/wiki/%E8%AE%BE%E7%BD%AE%E5%A4%9A%E8%AF%B4-DISQUS)
+
+- 创建多说账号
+－安装多说
+	- 填写自己的站点url
+	- 创建duoshuo_shortname
+- 在_config.yml中添加`duoshuo_shortname = {shortname}`
 
 ### 博客访问
 #### 不蒜子
