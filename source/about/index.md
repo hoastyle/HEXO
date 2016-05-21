@@ -1,8 +1,5 @@
 ---
 title: about
 date: 2016-05-21 14:43:42
+comments: false
 ---
-
-- 1
-- 2
-- 3

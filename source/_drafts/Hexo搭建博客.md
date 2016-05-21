@@ -127,6 +127,8 @@ mist
 	- 创建duoshuo_shortname
 - 在_config.yml中添加`duoshuo_shortname = {shortname}`
 
+> 注意：在page中需要disable留言，通过在page的header处添加comments: false
+
 ### 博客访问
 #### 不蒜子
 [不蒜子](http://service.ibruce.info/)
