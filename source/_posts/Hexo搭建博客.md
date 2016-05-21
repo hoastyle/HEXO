@@ -2,10 +2,11 @@
 title: Hexo搭建博客
 date: 2016-05-21 18:36:21
 tags:
+	- blog
+	- hexo
+	- node.js
+	- html
 ---
-# Solution
-[相关解释](http://www.pchou.info/web-build/2013/01/05/build-github-blog-page-03.html)
-
 # 相关工具
 ## node.js
 
