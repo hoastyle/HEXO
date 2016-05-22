@@ -8,50 +8,44 @@ tags:
 	- node.js
 	- html
 ---
-# 相关工具
-## node.js
 
-## hexo
+# 概述
+hexo是一种快速、简洁且高效的博客框架。
+> 超快速度  
+> 支持markdown  
+> 一键部署  
+> 丰富的插件  
 
-## next theme
-
-## markdown
-[github markdown](https://guides.github.com/features/mastering-markdown/)
-
-## vim and markdown
-
-## 域名
-blog文章数超过十篇，考虑申请域名。
+**主要部分**
+> node.js
+> NEXT theme
+> [github markdown](https://guides.github.com/features/mastering-markdown/)
 
 # Step
-## 安装node.js
-下载源码，./configure, make install 
+## node.js
+安装node.js有以下几种方式：	
+* 源码	
+* brew	
+`# brew install node`
+* pkg包	
+[pkg release](https://nodejs.org/download/release/latest/)
 
 ## github
-- 注册
-
-- SSH
+* 注册
+* SSH生成及上传github
 
 ## hexo
-[官方网站](https://hexo.io/)
-[指导](http://sunwhut.com/2015/10/30/buildBlog/?hmsr=toutiao.io&utm_medium=toutiao.io&utm_source=toutiao.io)
+> [官方网站](https://hexo.io/)
 
-### 问题
-1. Npm速度过慢
-由于某些大家都知道的缘故，npm官方源在国内的下载速度极其慢，用官网的npm install hexo-cli -g速度非常感人，所以不推荐这种方式。这里我推荐用淘宝的npm分流——cnpm
-安装过程很简单：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
-然后等着装完即可，之后的用法和npm一样，无非是把npm install改成cnpm install,但是速度比之前快了不止一个数量级(不过下文为了方便理解，还是会用默认的npm安装，如果你发现速度不好的话，请自行替换成'cnpm')
+### 本地安装hexo
+```sh
+npm install hexo-cli -g
+npm install hexo --save
+hexo init
+npm install
+```
 
-2. 插件不能使用-g安装
-hexo插件安装的时候先cd到blog根目录，并且安装参数不要带-g。 （即不要全局安装，因为全局安装的时候插件会被装到node的根目录下去，而不是blog目录），hexo的插件需要在blog目录下才能工作。
-
-### 本地安装HEXO
-    - `npm install hexo-cli -g`
-    - `npm install hexo --save`
-    - `hexo init`
-    - `npm install `
-
-cli是3.0版本，之前的版本是`npm install hexo -g`
+cli是3.0版本，之前的版本安装通过命令`npm install hexo -g`.
 
 ### 本地部署HEXO
 > 也可以用来预览和调试
@@ -59,38 +53,50 @@ cli是3.0版本，之前的版本是`npm install hexo -g`
 `# hexo g`
 `# hexo s`
 
-然后可以通过http://0.0.0.0:4000/访问。
+然后可以通过http://0.0.0.0:4000/或者localhost:4000访问.
 
-hexo文件夹也可以通过github同步，方便在另一台机器上部署hexo, 主要步骤分为以下几个部分:
+hexo工作目录也可以通过github同步，方便在另一台机器上部署hexo, 主要步骤分为以下几个部分:
 * install node.js and hexo app
 * git clone hexo文件夹
 * npm install下载node_modules
 * git clone next theme
 
+### github部署hexo
+**安装git deployer**
+npm install hexo-deployer-git --save
+
+**修改_config.yml**
+```sh
+deploy:
+  type: git
+  repo: git@github.com:hoastyle/hoastyle.github.io.git
+  branch: master
+```
+
 ### HEXO的基本操作
-**init 新建一个网站**
-`hexo init [folder]` 
+**init**
+新建一个网站
+`# hexo init [folder]` 
 在folder文件夹下建立网站。
 
 **generate** 
 
-**new 新建一篇文章**
-`hexo new [layout] <title>`
+**new**
+新建一篇文章
+`# hexo new [layout] <title>`
 如果没有指定layout，则使用_config.yml中默认的layout.
 
-### github部署HEXO
-- 安装git deployer
-npm install hexo-deployer-git --save
+### 问题
+1. Npm速度过慢
+由于某些大家都知道的缘故，npm官方源在国内的下载速度极其慢，用官网的npm install hexo-cli -g速度非常感人，所以不推荐这种方式。这里我推荐用淘宝的npm分流——cnpm
+安装过程很简单：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
+然后等着装完即可，之后的用法和npm一样，无非是把npm install改成cnpm install,但是速度比之前快了不止一个数量级(不过下文为了方便理解，还是会用默认的npm安装，如果你发现速度不好的话，请自行替换成'cnpm')
 
-- type改为git
+或者设置
+`npm config set registry http://registry.npm.taobao.org/`
 
-- 修改_config.yml
-```
-deploy:                                                                                                            
-  type: git                                                                                                        
-  repo: git@github.com:hoastyle/hoastyle.github.io.git                                                             
-  branch: master 
-```
+2. 插件不能使用-g安装
+hexo插件安装的时候先cd到blog根目录，并且安装参数不要带-g。 （即不要全局安装，因为全局安装的时候插件会被装到node的根目录下去，而不是blog目录），hexo的插件需要在blog目录下才能工作。
 
 ## 主题
 ### 主题资源
@@ -123,8 +129,23 @@ deploy:
 mist
 
 ### 新建page
+`# hexo new page <page name>`
+about, categories, tags都属于page.
+在新建page之后，需要在主题配置文件中添加：
+```sh
+menu:
+  home: /
+  categories: /categories
+  archives: /archives
+  tags: /tags
+```
 
-### tag
+### 文章分类
+
+## 第三方插件或服务
+
+### 域名
+blog文章数超过十篇，考虑申请域名。
 
 ### 留言评论
 网址 : [多说](https://github.com/iissnan/hexo-theme-next/wiki/%E8%AE%BE%E7%BD%AE%E5%A4%9A%E8%AF%B4-DISQUS)
@@ -142,7 +163,7 @@ mist
 网址 : [不蒜子](http://service.ibruce.info/)
 
 \+ themes/next/layout/_partials/footer.swig
-```
+```html
 <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 <span id="busuanzi_container_site_pv">
@@ -156,7 +177,7 @@ mist
 
 \+ themes/next/layout/_macro/post.swig
 在div class="post-meta"结尾添加
-```
+```html
 {% if not is_index and theme.busuanzi_count.enable and theme.busuanzi_count.page_pv %}                   
 	&nbsp; | &nbsp;                                                                                      
 	<span class="page-pv">{{ theme.busuanzi_count.page_pv_header }}                                      
@@ -170,16 +191,10 @@ mist
 
 > 注意："&nbsp;"是html中空格的意思
 
-### 其他各种插件
-
-### 文章分类
-
 ### 图床
 七牛云
 
-## 第三方插件或服务
-
-### 文章分类
+图片自动上传并返回link脚本，参考: [拖曳文件上传到七牛的Python脚本](http://lovenight.github.io/2015/11/17/%E6%8B%96%E6%9B%B3%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E5%88%B0%E4%B8%83%E7%89%9B%E7%9A%84%E8%84%9A%E6%9C%AC/)
 
 # 参考
 
@@ -197,3 +212,4 @@ mist
 [using a custom domain with github pages](https://help.github.com/articles/using-a-custom-domain-with-github-pages/)
 [example](http://beiyuu.com/github-pages/)
 [hexo博客搭建遇到的一些问题](https://segmentfault.com/a/1190000003710962?_ea=336354) -- 速度，部署等等
+[Hexo静态博客搭建指南](http://lovenight.github.io/2015/11/10/Hexo-3-1-1-%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%8C%87%E5%8D%97/)
