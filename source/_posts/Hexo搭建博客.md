@@ -1,6 +1,7 @@
 ---
 title: Hexo搭建博客
 date: 2016-05-21 18:36:21
+categories: [Tech, Tool]
 tags:
 	- blog
 	- hexo
