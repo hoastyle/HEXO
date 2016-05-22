@@ -75,23 +75,23 @@ deploy:
 ```
 
 ### hexo的使用
-####init
+#### init
 新建一个网站
 `# hexo init [folder]` 
 在folder文件夹下建立网站。
 
-####generate
+#### generate
 新建一篇page
 `# hexo new page <title>`
 
-####new
+#### new
 新建一篇文章
 `# hexo new [layout] <title>`
 如果没有指定layout，则使用_config.yml中默认的layout.
 
-####deploy
+#### deploy
 
-####文章编辑
+#### 文章编辑
 文章分为两个部分，头部和正文。
 
 **头部**
@@ -173,6 +173,33 @@ menu:
 简单的插件或者服务设置可以参考[next doc](http://theme-next.iissnan.com/getting-started.html).
 
 ### sitemap插件
+提高网站被搜索引擎收录的可能性(网站的SEO有关系).
+
+1. 安装sitemap插件
+```
+$ npm install hexo-generator-sitemap --save
+$ npm install hexo-generator-baidu-sitemap --save
+```
+2. 修改配置文件_config.yml
+```sh
+sitemap:
+	path: sitemap.xml
+baidusitemap:
+	path: baidusitemap.xml
+
+# 或者
+
+plugins:
+	- hexo-generator-sitemap
+	- hexo-generator-baidu-sitemap
+```
+	在经过上述操作后，重新部署blog，应该可以通过yousite/sitemap.xml 和 yousite/baidusitemap.xml访问到对应的xml文件.
+3. 提交sitemap
+	* 百度
+	登陆[百度站长管理网站](http://zhanzhang.baidu.com/dashboard/index), 新建站点，选择html tag方式验证.
+	添加方法：在themes/next/layout/layout/_partials/head.swig开始出添加需要添加的代码.
+	* google
+	登陆[google站点管理网站](https://www.google.com/webmasters/tools)，具体操作方法同上.
 
 ### 站内搜索
 
@@ -247,3 +274,4 @@ blog文章数超过十篇，考虑申请域名。
 ## hexo & next development
 [ARAO'S Blog](http://www.arao.me/)
 [next author's blog](http://notes.iissnan.com/)
+[hexo 插件分析](http://kyfxbl.iteye.com/blog/2237538)
