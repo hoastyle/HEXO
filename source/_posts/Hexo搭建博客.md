@@ -21,8 +21,9 @@ hexo是一种快速、简洁且高效的博客框架。
 > NEXT theme
 > [github markdown](https://guides.github.com/features/mastering-markdown/)
 
-# Step
-## node.js
+<!--more-->
+# 搭建blog
+## 安装node.js
 安装node.js有以下几种方式：	
 * 源码	
 * brew	
@@ -34,7 +35,7 @@ hexo是一种快速、简洁且高效的博客框架。
 * 注册
 * SSH生成及上传github
 
-## hexo
+## 安装hexo
 > [官方网站](https://hexo.io/)
 
 ### 本地安装hexo
@@ -73,60 +74,85 @@ deploy:
   branch: master
 ```
 
-### HEXO的基本操作
-**init**
+### hexo的使用
+####init
 新建一个网站
 `# hexo init [folder]` 
 在folder文件夹下建立网站。
 
-**generate** 
+####generate
+新建一篇page
+`# hexo new page <title>`
 
-**new**
+####new
 新建一篇文章
 `# hexo new [layout] <title>`
 如果没有指定layout，则使用_config.yml中默认的layout.
+
+####deploy
+
+####文章编辑
+文章分为两个部分，头部和正文。
+
+**头部**
+```
+title:
+date:
+categories:
+tags:
+```
+多级分类语法格式如下：
+```
+# 第一种
+categories:
+	- 一级分类
+	- 二级分类
+	- etc
+
+# 第二种
+categories: [一级，二级， etc]
+```
+**首页文章预览添加图片**
+```
+photos:
+	- url
+```
+**设置文章摘要**
+文章摘要就是在主页中能够看到的部分, 通过`<!--more>`设置.
+```
+以上是摘要
+<!--more-->
+以下是正文
+```
 
 ### 问题
 1. Npm速度过慢
 由于某些大家都知道的缘故，npm官方源在国内的下载速度极其慢，用官网的npm install hexo-cli -g速度非常感人，所以不推荐这种方式。这里我推荐用淘宝的npm分流——cnpm
 安装过程很简单：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
 然后等着装完即可，之后的用法和npm一样，无非是把npm install改成cnpm install,但是速度比之前快了不止一个数量级(不过下文为了方便理解，还是会用默认的npm安装，如果你发现速度不好的话，请自行替换成'cnpm')
-
 或者设置
 `npm config set registry http://registry.npm.taobao.org/`
 
 2. 插件不能使用-g安装
 hexo插件安装的时候先cd到blog根目录，并且安装参数不要带-g。 （即不要全局安装，因为全局安装的时候插件会被装到node的根目录下去，而不是blog目录），hexo的插件需要在blog目录下才能工作。
 
-## 主题
-### 主题资源
+## 博客设置
+### 主题
+#### 主题资源
 [github主题站](https://github.com/hexojs/hexo/wiki/Themes)
 [hexo 主题站](https://hexo.io/themes/index.html)
 [知乎主题帖](https://www.zhihu.com/question/24422335)
 [推荐主题next](http://theme-next.iissnan.com/)
 
-### next主题使用
+#### next主题使用
 [设置参考](http://www.ezlippi.com/blog/2016/02/jekyll-to-hexo.html)
 
-## Advanced Setting
 ### 语言设置
 在hexo安装目录下的_config.yml中设置。
 
 > language: option
 
 其具体的选择项由themes中language目录下的内容决定。
-
-### 头像设置
-> 不确认是否是针对next主题的设置
-
-地址 | 值
---- | ---
-互联网地址 | http://example.com/avtar.png
-站点地址1　| 将头像放置主题目录下的 source/uploads/, （新建uploads目录若不存在), 配置为：avatar: /uploads/avatar.png
-站点地址２ | 放置在 source/images/ 目录下, 配置为：avatar: /images/avatar.png
-
-### 主题风格设置
-mist
 
 ### 新建page
 `# hexo new page <page name>`
@@ -141,6 +167,7 @@ menu:
 ```
 
 ### 文章分类
+
 
 ## 第三方插件或服务
 
@@ -161,7 +188,6 @@ blog文章数超过十篇，考虑申请域名。
 ### 博客访问
 #### 不蒜子
 网址 : [不蒜子](http://service.ibruce.info/)
-
 \+ themes/next/layout/_partials/footer.swig
 ```html
 <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
@@ -174,7 +200,6 @@ blog文章数超过十篇，考虑申请域名。
   &nbsp; | &nbsp; 本站访客数<span id="busuanzi_value_site_uv"></span>人次
 </span> 
 ```
-
 \+ themes/next/layout/_macro/post.swig
 在div class="post-meta"结尾添加
 ```html
