@@ -170,6 +170,11 @@ menu:
 
 
 ## 第三方插件或服务
+简单的插件或者服务设置可以参考[next doc](http://theme-next.iissnan.com/getting-started.html).
+
+### sitemap插件
+
+### 站内搜索
 
 ### 域名
 blog文章数超过十篇，考虑申请域名。
@@ -238,3 +243,7 @@ blog文章数超过十篇，考虑申请域名。
 [example](http://beiyuu.com/github-pages/)
 [hexo博客搭建遇到的一些问题](https://segmentfault.com/a/1190000003710962?_ea=336354) -- 速度，部署等等
 [Hexo静态博客搭建指南](http://lovenight.github.io/2015/11/10/Hexo-3-1-1-%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%8C%87%E5%8D%97/)
+
+## hexo & next development
+[ARAO'S Blog](http://www.arao.me/)
+[next author's blog](http://notes.iissnan.com/)
