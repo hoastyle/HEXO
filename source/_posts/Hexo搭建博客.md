@@ -61,6 +61,12 @@ cli是3.0版本，之前的版本是`npm install hexo -g`
 
 然后可以通过http://0.0.0.0:4000/访问。
 
+hexo文件夹也可以通过github同步，方便在另一台机器上部署hexo, 主要步骤分为以下几个部分:
+* install node.js and hexo app
+* git clone hexo文件夹
+* npm install下载node_modules
+* git clone next theme
+
 ### HEXO的基本操作
 **init 新建一个网站**
 `hexo init [folder]` 
