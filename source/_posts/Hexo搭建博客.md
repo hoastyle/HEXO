@@ -127,21 +127,21 @@ mist
 ### tag
 
 ### 留言评论
-[多说](https://github.com/iissnan/hexo-theme-next/wiki/%E8%AE%BE%E7%BD%AE%E5%A4%9A%E8%AF%B4-DISQUS)
+网址 : [多说](https://github.com/iissnan/hexo-theme-next/wiki/%E8%AE%BE%E7%BD%AE%E5%A4%9A%E8%AF%B4-DISQUS)
 
-- 创建多说账号
-－安装多说
-	- 填写自己的站点url
-	- 创建duoshuo_shortname
-- 在_config.yml中添加`duoshuo_shortname = {shortname}`
+* 创建多说账号
+* 安装多说
+	* 填写自己的站点url
+	* 创建duoshuo_shortname
+* 在_config.yml中添加`duoshuo_shortname = {shortname}`
 
 > 注意：在page中需要disable留言，通过在page的header处添加comments: false
 
 ### 博客访问
 #### 不蒜子
-[不蒜子](http://service.ibruce.info/)
+网址 : [不蒜子](http://service.ibruce.info/)
 
-+ themes/next/layout/_partials/footer.swig
+\+ themes/next/layout/_partials/footer.swig
 ```
 <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
@@ -154,7 +154,7 @@ mist
 </span> 
 ```
 
-+ themes/next/layout/_macro/post.swig
+\+ themes/next/layout/_macro/post.swig
 在div class="post-meta"结尾添加
 ```
 {% if not is_index and theme.busuanzi_count.enable and theme.busuanzi_count.page_pv %}                   
@@ -169,7 +169,6 @@ mist
 ```
 
 > 注意："&nbsp;"是html中空格的意思
-
 
 ### 其他各种插件
 
