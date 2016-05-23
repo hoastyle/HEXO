@@ -173,7 +173,7 @@ menu:
 简单的插件或者服务设置可以参考[next doc](http://theme-next.iissnan.com/getting-started.html).
 
 ### sitemap插件
-提高网站被搜索引擎收录的可能性(网站的SEO有关系).
+提高网站被搜索引擎收录的可能性(网站的SEO有关系). 大部分内容参考[hexo提交搜索引擎](http://www.jianshu.com/p/619dab2d3c08)这篇文章，另外还有[这篇](http://lukang.me/2015/optimization-of-hexo-2.html)可供参考.
 
 1. 安装sitemap插件
 ```
@@ -194,12 +194,14 @@ plugins:
 	- hexo-generator-baidu-sitemap
 ```
 	在经过上述操作后，重新部署blog，应该可以通过yousite/sitemap.xml 和 yousite/baidusitemap.xml访问到对应的xml文件.
-3. 提交sitemap
+3. 验证网站
 	* 百度
 	登陆[百度站长管理网站](http://zhanzhang.baidu.com/dashboard/index), 新建站点，选择html tag方式验证.
 	添加方法：在themes/next/layout/layout/_partials/head.swig开始出添加需要添加的代码.
 	* google
 	登陆[google站点管理网站](https://www.google.com/webmasters/tools)，具体操作方法同上.
+4. 提交sitemap
+
 
 ### 站内搜索
 
