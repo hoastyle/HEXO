@@ -50,6 +50,7 @@ ASoC就是为了解决上述问题而设计出来的新的架构。其优点如�
 
 machine driver的命名往往是platform_codec.c的形式。  
 如在sc58x中，sc58x-adau1962.c为adau1962在sc58x上的machine driver.  
+在samsung中，smdk_wm8994.c位wm8994在smdk上的machine driver
 
 主要结构：
 
@@ -108,6 +109,77 @@ component_list
 dai_list
 
 ### 代码分析
+#### machine
+以samsung为例，分析smdk_wm8994.c
+machine driver实现为一个platform driver，该driver的probe函数的主要目的是注册snd_soc_card结构体。
+```c
+ret = devm_snd_soc_register_card(&pdev->dev, card);
+```
+首先对card做了初步的初始化，并定义了snd_soc_dai_link结构。
+```c
+static struct snd_soc_dai_link smdk_dai[] = {
+    { /* Primary DAI i/f */
+	.name = "WM8994 AIF1",
+	.stream_name = "Pri_Dai",
+	.cpu_dai_name = "samsung-i2s.0",
+	.codec_dai_name = "wm8994-aif1",
+	.platform_name = "samsung-i2s.0",
+	.codec_name = "wm8994-codec",
+	.init = smdk_wm8994_init_paiftx,
+	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |        
+            SND_SOC_DAIFMT_CBM_CFM,
+	.ops = &smdk_ops,                                             
+    }, { /* Sec_Fifo Playback i/f */
+	.name = "Sec_FIFO TX",
+	.stream_name = "Sec_Dai",
+	.cpu_dai_name = "samsung-i2s-sec",
+	.codec_dai_name = "wm8994-aif1",
+	.platform_name = "samsung-i2s-sec",
+	.codec_name = "wm8994-codec",
+	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+	    SND_SOC_DAIFMT_CBM_CFM,
+	.ops = &smdk_ops,
+    },
+};
+
+static struct snd_soc_card smdk = {
+    .name = "SMDK-I2S",
+    .owner = THIS_MODULE,
+    .dai_link = smdk_dai,
+    .num_links = ARRAY_SIZE(smdk_dai),
+}; 
+```
+其中引出了两个比较重要的结构，snd_soc_dai_link和snd_soc_ops.
+其中snd_soc_dai_link指定了音频系统中各个子设备(platform, cpu dai, codec dai, codec)的名字用于匹配.
+
+snd_soc_ops的作用是什么？
+
+最主要的就是card的register, snd_soc_register_card函数，下面是简化版的实现
+```
+	snd_soc_init_multicodec(card, link)
+	card->rtd = alloc;
+	card->rtd.card = card
+	card->rtd.dai_link = dai_link
+	card->rtd.codec_dais = alloc;
+	snd_soc_instantiate_card
+	...
+```
+其中卡的实例化snd_soc_instantiate_card是最主要的部分
+```
+	snd_bind_dai_link
+	snd_card_new
+	soc_probe_link_components
+	soc_probe_link_dais
+	snd_soc_runtime_set_dai_fmt
+	snd_card_register
+	...
+```
+
+* 
+
+#### platform
+
+#### codec
 
 
 ### 音频流程
