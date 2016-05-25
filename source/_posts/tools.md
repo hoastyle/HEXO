@@ -1,15 +1,18 @@
 ---
-title: 各种画图工具
+title: tools
+date: 2016-05-25 20:43:47
+categories: [Tech, Tool]
 tags:
 ---
 
+
 ## 代码分析
 * vim
-* cscope  
+* cscope
 
 ## 流程图
 * gliffy 流程图
-* visio 
+* visio
 
 ## 脑图
 * simplemind 自由
