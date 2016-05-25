@@ -1,6 +1,12 @@
 ---
-title: ASoC
+title: ALSA
+date: 2016-05-25 15:08:03
+categories: [Tech, OS, Linux, Driver, Audio]
 tags:
+	- ALSA
+	- ASoC
+	- linux
+	- driver
 ---
 
 # ALSA
@@ -17,7 +23,7 @@ ALSA的框架
 ---
 以下是微观角度
 
-
+<!--more-->
 
 # ASoC
 ## ASoC Overview
@@ -57,6 +63,7 @@ machine driver的命名往往是platform_codec.c的形式。
 * snd_soc_card
 
 主要函数：
+* snd_soc_register_card
 
 ### platform
 > 概述：主要是负责数据的传输，而在音频中都是通过DMA传输数据。所以该部分包括DMA的控制以及{DAI}.
@@ -155,27 +162,85 @@ static struct snd_soc_card smdk = {
 snd_soc_ops的作用是什么？
 
 最主要的就是card的register, snd_soc_register_card函数，下面是简化版的实现
-```
+```c
+	//初始化struct snd_soc_dai_link_component dai_link->codecs，包括name, of_node, dai_name
 	snd_soc_init_multicodec(card, link)
+	card->dev->driver_data = card
+	//初始化snd_soc_pcm_runtime
 	card->rtd = alloc;
 	card->rtd.card = card
 	card->rtd.dai_link = dai_link
+	//snd_soc_dai
 	card->rtd.codec_dais = alloc;
+	//实例化card
 	snd_soc_instantiate_card
 	...
 ```
-其中卡的实例化snd_soc_instantiate_card是最主要的部分
-```
+引出snd_soc_instantiate_card
+```c
 	snd_bind_dai_link
-	snd_card_new
+	//SNDRV_DEFAULT_STR1是card identification
+	snd_card_new(card->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1, 
+		card->owner, 0, &card->snd_card);) 
 	soc_probe_link_components
 	soc_probe_link_dais
 	snd_soc_runtime_set_dai_fmt
 	snd_card_register
 	...
 ```
+以上每个部分都很重要，分开来描述
 
-* 
+##### snd_bind_dai_link
+> 遍历每一个dai_link，轮询codec_list & platform_list & dai_list, 对codec, platform, dai进行绑定.
+
+```c
+	//定义并初始化cpu_dai_component，codecs在snd_soc_register_card中初始化
+	snd_soc_dai_link_component cpu_dai_component;
+	cpu_dai_component.name = 
+	cpu_dai_component.of_node
+	cpu_dai_component.dai_name = 
+
+	//查找component_list以及component->dai_list，获取snd_soc_dai cpu_dai
+	//问题: 各个component之间的关系是什么？
+	snd_soc_find_dai(&cpu_dai_component)
+	rtd->cpu_dai
+
+	//查找component_list以及component->dai_list，获取snd_soc_dai codec_dais
+	snd_soc_find_dai(&codecs[i])
+	rtd->codec_dai
+	rtd->codec
+
+	//查找platform_list，获取snd_soc_platform
+	rtd->platform = platform;
+```
+
+##### snd_card_new
+> 分配初始化card的核心设备结构snd_card
+
+card作为一个设备，其和内核设备模型相关的部分在该函数中完成。
+
+##### snd_probe_link_components
+> 按照参数order的先后顺序对component进行初始化
+
+```c
+struct snd_soc_component *component;
+
+component rtd->cpu_dai->component;
+ret = soc_probe_component(card, component)
+
+component = rtd->codec_dais[i]->component;
+ret = soc_probe_component(card, component);
+
+struct snd_soc_platform *platform = rtd->platform;
+ret = soc_probe_component(card, &platform->component);
+```
+
+**问题**
+* snd_soc_component是什么时候建立的？
+
+##### snd_probe_link_dais
+
+##### snd_soc_ru 
 
 #### platform
 
