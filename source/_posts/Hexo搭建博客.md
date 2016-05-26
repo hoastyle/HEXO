@@ -9,21 +9,21 @@ tags:
 	- html
 ---
 
-![](http://7xudaf.com1.z0.glb.clouddn.com/hexo-github-blog.png?imageView2/2/w/203/h/203&e=1464336038&token=jbx1O-UwOcIrDkTCLgeS_ZQtcFb1iUtVlI5t6m88:Ac3CFhKUs6pO05lnHQ1VeRIqIJY)
 # 概述
 hexo是一种快速、简洁且高效的博客框架，可以快速的生成静态网页托管在github等平台上。对markdown有很好的支持，并支持从Wordpress等迁移。
 
-**相关技术和工具**
-> hexo
-> github
-> node.js
-> NEXT theme
-> [github markdown](https://guides.github.com/features/mastering-markdown/)
+**搭建博客相关技术和工具**
+* hexo
+* github
+* node.js
+* NEXT theme
+* [github markdown](https://guides.github.com/features/mastering-markdown/)
 
 <!--more-->
 # 搭建blog
 ## 安装node.js
 安装node.js有以下几种方式：	
+
 * 源码	
 * brew	
 `# brew install node`
@@ -31,6 +31,7 @@ hexo是一种快速、简洁且高效的博客框架，可以快速的生成静�
 [pkg release](https://nodejs.org/download/release/latest/)
 
 ## github
+
 * 注册
 * SSH生成及上传github
 

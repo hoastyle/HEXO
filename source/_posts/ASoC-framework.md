@@ -9,8 +9,7 @@ tags:
 	- driver
 ---
 
-# ASoC
-## ASoC Overview
+# ASoC Overview
 ALSA System on Chip(ASoC) layer 的目的是为嵌入式处理器以及各种codec提供更好的ALSA支持。在ASoC之前，linux已经对SoC audio提供了相应的支持，但是有如下的缺点。
 
 * codec driver 和 cpu 的代码之间耦合性太强，导致难移植以及代码的重复。
@@ -30,17 +29,17 @@ ASoC就是为了解决上述问题而设计出来的新的架构。其优点如�
 
 为实现上面提到的种种特性，ASoC将嵌入式音频系统分为三个可以重用的component driver，分别是machine class, platform class, codec class。其中，platform & codec是跨平台的，而machine是板级相关。
 
-### ASoC和ALSA的关系
+## ASoC和ALSA的关系
 
 为了弄清楚ASoC的整个框架，将会从以下两个角度探讨ASoC
 
 * 各个部分之间的关系
 * 音频初始化流程以及运行流程
 
-## Component in ASoC
+# Component in ASoC
 以sc58x 以及 samsung为例，解释其框架结构。
 
-### machine class
+## machine class
 > 概述: 是将各个组件绑定成一个"sound card device"，它可以处理平台级别的控制操作以及相关事件。
 
 machine driver的命名往往是platform_codec.c的形式。  
@@ -54,7 +53,7 @@ machine driver的命名往往是platform_codec.c的形式。
 主要函数：
 * snd_soc_register_card
 
-### platform
+## platform
 > 概述：主要是负责数据的传输，而在音频中都是通过DMA传输数据。所以该部分包括DMA的控制以及{DAI}.
 
 主要结构体：
@@ -66,7 +65,7 @@ machine driver的命名往往是platform_codec.c的形式。
 
 * snd_soc_register_platform
 
-### codec
+## codec
 > 概述：负责(A/D,D/A)转换，通路控制(音乐播放, fm, ...)，音频信号的处理(放大，格式转换, ...)
 
 主要结构：
@@ -85,7 +84,7 @@ machine driver的命名往往是platform_codec.c的形式。
 * (platform & cpu dai) and (codec dai & codec)  
 和platform或者codec在同一个platform driver中进行注册和初始化。
 
-### DAI
+## DAI
 
 > 概述：
 
@@ -104,8 +103,8 @@ component_list
 
 dai_list
 
-### 代码分析
-#### machine
+## 代码分析
+### machine
 旅程从machine driver开始。
 以samsung为例，分析smdk_wm8994.c
 machine driver实现为一个platform driver，该driver的probe函数的主要目的是注册snd_soc_card结构体。
@@ -180,7 +179,7 @@ snd_card_register
 ```
 以上每个部分都很重要，分开来描述
 
-##### snd_bind_dai_link
+#### snd_bind_dai_link
 > 遍历每一个dai_link，轮询codec_list & platform_list & dai_list, 对codec, platform, dai进行绑定.
 
 ```c
@@ -204,12 +203,12 @@ rtd->codec
 rtd->platform = platform;
 ```
 
-##### snd_card_new
+#### snd_card_new
 > 分配初始化card的核心设备结构snd_card
 
 card作为一个设备，其和内核设备模型相关的部分在该函数中完成。
 
-##### snd_probe_link_components
+#### snd_probe_link_components
 > 按照参数order的先后顺序对component进行初始化
 
 ```c
@@ -252,7 +251,7 @@ snd_soc_component_add(component)
 * component的作用是什么？
 * 为什么dai需要component?
 
-##### soc_probe_link_dais
+#### soc_probe_link_dais
 ```c
 //cpu dai->driver->probe
 ret = soc_probe_dai(cpu_dai, order)
@@ -278,19 +277,19 @@ soc_new_pcm
 * soc_new_pcm做了什么？
 * 什么是compress device，和pcm的区别是什么？
 
-##### snd_card_register
+#### snd_card_register
 ```c
 device_add(&card->card_dev)
 //遍历snd_card->devices链表注册其中所有的device
 //调用dev->ops->dev_register
 snd_device_register_all(card)
 ```
-#### platform
+### platform
 
-#### codec
+### codec
 
 
-### 音频流程
+## 音频流程
 以上描述了各个部分的作用以及各个部分之间的联系。而在alsa框架中，整个音频流程是怎么样的？
 如何构建一个完整的音频流？
 
@@ -299,16 +298,16 @@ snd_device_register_all(card)
 
 描述完框架性的结构，可以探讨ASoC中的一些其他有趣的部分，比如DMA.
 
-## Other
-### DPAM
-### DMA in ALSA
+# Other
+## DPAM
+## DMA in ALSA
 
 
-### Debug in ALSA
+## Debug in ALSA
 * debugfs
 * ftrace
 
-### regmap-io
+## regmap-io
 
 # Reference
 
