@@ -9,14 +9,13 @@ tags:
 	- html
 ---
 
+![](http://7xudaf.com1.z0.glb.clouddn.com/hexo-github-blog.png?imageView2/2/w/203/h/203&e=1464336038&token=jbx1O-UwOcIrDkTCLgeS_ZQtcFb1iUtVlI5t6m88:Ac3CFhKUs6pO05lnHQ1VeRIqIJY)
 # 概述
-hexo是一种快速、简洁且高效的博客框架。
-> 超快速度  
-> 支持markdown  
-> 一键部署  
-> 丰富的插件  
+hexo是一种快速、简洁且高效的博客框架，可以快速的生成静态网页托管在github等平台上。对markdown有很好的支持，并支持从Wordpress等迁移。
 
-**主要部分**
+**相关技术和工具**
+> hexo
+> github
 > node.js
 > NEXT theme
 > [github markdown](https://guides.github.com/features/mastering-markdown/)
