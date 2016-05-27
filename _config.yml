@@ -78,6 +78,9 @@ deploy:
 # avatar 头像
 avatar: /uploads/兔子.JPG
 
+# 网站图像
+favicon: /uploads/兔子.JPG
+
 # time, if from 2015, @2015 - 2016
 since: 2016
 

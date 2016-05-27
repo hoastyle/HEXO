@@ -9,6 +9,8 @@ tags:
 	- html
 ---
 
+<div align="center"><img src="http://7xudaf.com1.z0.glb.clouddn.com/hexo_github.png" /></div>
+
 # 概述
 hexo是一种快速、简洁且高效的博客框架，可以快速的生成静态网页托管在github等平台上。对markdown有很好的支持，并支持从Wordpress等迁移。
 

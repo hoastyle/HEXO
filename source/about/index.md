@@ -6,10 +6,4 @@ comments: false
 
 ## Hello!
 My name is Hao(梁浩) and I'm a software engineer based in Shanghai, China.
-
-## Tech Background
-
-* Linux kernel and driver development
-* RTOS development
-
-## Contact Me
+其他的还没想好...
