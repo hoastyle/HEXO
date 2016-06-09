@@ -6,4 +6,5 @@ comments: false
 
 ## Hello!
 My name is Hao(梁浩) and I'm a software engineer based in Shanghai, China.
-其他的还没想好...
+
+**We choose to go to the moon**

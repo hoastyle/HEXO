@@ -1,8 +1,9 @@
 ---
 title: Tools
-date: 2016-05-25 20:43:47
+date: 2016-06-09 14:36:35
 categories: [Tech, Tool]
 tags:
+	- Tool
 ---
 
 本文旨在分享工作生活中用到的各种软件。
@@ -23,7 +24,6 @@ tags:
 * gliffy
 * visio
 
-<!--more-->
 ## 脑图
 * simplemind
 > 优点：多中心店，更加自由，多种layout选择
@@ -49,6 +49,7 @@ tags:
 ## 翻墙
 * xx-net
 * [多态](duotai.org)
+* shadowrocket
 
 ## 信息聚合
 * 一览阅读
@@ -59,4 +60,5 @@ tags:
 
 目前在使用两款：
 * 百度云
+> 非RMB用户下载速度被限制
 * pcloud
