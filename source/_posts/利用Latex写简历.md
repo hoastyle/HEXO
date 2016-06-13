@@ -18,7 +18,7 @@ Word生成的简历总是缺那么点意思，正好最近换工作的事提上�
 
 综合以上考虑，选择Latex.
 
-<--!more-->
+<!--more-->
 # 环境及所需软件
 * 环境：MAC
 * 软件
@@ -38,3 +38,5 @@ moderncv是个zip包，下载解压即可。
 * [用Latex写中英文简历](https://zr9558.com/2014/11/26/moderncv/)
 * [moderncv官网](https://launchpad.net/moderncv)
 * [share latex](https://www.sharelatex.com/)
+* [如何使用moderncv](https://www.xiangsun.org/tex/notes-on-moderncv/)
+* [github latex 简历模板](https://github.com/tinyclub/latex-resume)
