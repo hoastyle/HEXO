@@ -72,6 +72,10 @@ theme: next
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
+#  repo: 
+# 		github: git@github.com:hoastyle/hoastyle.github.io.git,master
+# 		coding: git@git.coding.net:hoa/hoa.git,master
+# branch: master
   repo: git@github.com:hoastyle/hoastyle.github.io.git
   branch: master
 

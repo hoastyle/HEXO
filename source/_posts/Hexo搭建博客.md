@@ -274,6 +274,7 @@ blog文章数超过十篇，考虑申请域名。
 [example](http://beiyuu.com/github-pages/)
 [hexo博客搭建遇到的一些问题](https://segmentfault.com/a/1190000003710962?_ea=336354) -- 速度，部署等等
 [Hexo静态博客搭建指南](http://lovenight.github.io/2015/11/10/Hexo-3-1-1-%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%8C%87%E5%8D%97/)
+[如何在百度中搜索到你的blog](http://www.jianshu.com/p/7ad9d3cd4d6e)
 
 ## hexo & next development
 [ARAO'S Blog](http://www.arao.me/)

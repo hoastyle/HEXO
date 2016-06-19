@@ -106,14 +106,9 @@ dai_list
 ## 代码分析
 ### machine
 旅程从machine driver开始。
-以samsung中的smdk_wm8994.c为例，该machine driver实现为一个platform driver。
+以samsung中的smdk_wm8994.c为例，该machine driver作为platform driver挂载在系统中。
 
-这部分主要分两部分
-* platform driver probe
-* machine platform driver的作用
-
-#### platform driver probe
-在目前的实现中，board文件中的初始化函数会定义一个名字和platform driver相同的platform_device，并通过platform_add_devices添加到系统中。
+对应的，board文件中的初始化函数会定义一个名字和platform driver相同的platform_device，并通过platform_add_devices添加到系统中。
 
 该platform device用于和machine platform driver匹配，匹配后会调用driver中的probe函数。
 其调用流程如下：
@@ -132,16 +127,18 @@ platform_driver_register
 > platform device的添加，其所属的初始化函数的初始化级别是arch_initcall
 > 而platform driver的初始化函数的级别是module_init，arch_initcall的级别高于module_init，所以platform_device比driver要先初始化。
 
+当machine以platform driver的形式通过platform_driver_register加入到系统中时，如果匹配到board中的platform device, 将会运行probe函数。
+
 以上部分有两个点可以另外分析
 * linux中的初始化级别
 * platform的框架
 
-#### machine platform driver的作用
-该driver的probe函数的主要目的是注册snd_soc_card结构体。
-```c
-ret = devm_snd_soc_register_card(&pdev->dev, card);
-```
-首先对card做了初步的初始化，并定义了snd_soc_dai_link结构。
+probe主要通过两个方面进行分析
+* 主要结构体
+* probe的流程
+
+#### 主要结构体
+**Example code**
 ```c
 static struct snd_soc_dai_link smdk_dai[] = {
     { /* Primary DAI i/f */
@@ -152,9 +149,9 @@ static struct snd_soc_dai_link smdk_dai[] = {
 	.platform_name = "samsung-i2s.0",
 	.codec_name = "wm8994-codec",
 	.init = smdk_wm8994_init_paiftx,
-	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |        
+	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
             SND_SOC_DAIFMT_CBM_CFM,
-	.ops = &smdk_ops,                                             
+	.ops = &smdk_ops,
     }, { /* Sec_Fifo Playback i/f */
 	.name = "Sec_FIFO TX",
 	.stream_name = "Sec_Dai",
@@ -175,12 +172,28 @@ static struct snd_soc_card smdk = {
     .num_links = ARRAY_SIZE(smdk_dai),
 }; 
 ```
-其中引出了两个比较重要的结构
-* snd_soc_dai_link
-* snd_soc_ops
+简化一下
+```
+snd_soc_dai_link {
+	dai_link_name,
+    stream name,
+    component name,
+    dai_fmt,
+    ops
+}
+```
 
-**snd_soc_dai_link**： 指定了音频系统中各个子设备(platform, cpu dai, codec dai, codec)的名字用于匹配.
-**snd_soc_ops**: 其定义为
+问题：
+* 1 每个dai_link对应的实际概念是什么？
+* 2 init在哪个函数中调用？
+* 3 dai_fmt的作用是什么，什么地方调用？
+* 4 ops的作用是什么，什么地方调用？
+
+1. snd_soc_dai_link
+指定了音频系统中各个子设备(platform, cpu dai, codec dai, codec)的名字用于匹配.
+
+4. snd_soc_ops 
+其定义为
 ```c
  /* SoC audio ops */
 struct snd_soc_ops {
@@ -194,7 +207,12 @@ struct snd_soc_ops {
 ```
 主要对象是snd_pcm_substream, 这些函数会在substream->ops对应的函数中依次调用。
 
-回到代码主线上来，其主要部分是card的register, snd_soc_register_card函数，下面是简化版的实现
+#### probe的流程
+Probe函数的主要目的是注册snd_soc_card结构体。
+```c
+ret = devm_snd_soc_register_card(&pdev->dev, card);
+```
+其主要部分是card的register, snd_soc_register_card函数，下面是简化版的实现
 ```c
 //初始化struct snd_soc_dai_link_component dai_link->codecs，包括name, of_node, dai_name
 snd_soc_init_multicodec(card, link)
@@ -209,7 +227,7 @@ card->rtd.codec_dais = alloc;
 snd_soc_instantiate_card
 ...
 ```
-引出snd_soc_instantiate_card
+其重点是初始化rtd，建立rtd, card, dai_link之间的联系，然后通过snd_soc_instantiate_card将card实例化。
 ```c
 snd_bind_dai_link
 //SNDRV_DEFAULT_STR1是card identification
@@ -221,6 +239,9 @@ snd_soc_runtime_set_dai_fmt(&card->rtd[i], card->dai_link[i].dai_fmt)
 snd_card_register
 ...
 ```
+
+**此处应该有函数序列图**
+
 下面具体分析snd_soc_instantiate_card中的重要函数
 
 ##### 1) snd_bind_dai_link
@@ -247,6 +268,23 @@ rtd->codec; //codec和codec_dai同时在codec driver中初始化，codec_dai->co
 //查找platform_list，获取snd_soc_platform
 rtd->platform = platform;
 ```
+
+问题：
+* component什么时候定义？
+* component的意义是什么？
+
+1. component什么时候定义？
+在cpu dai driver以及codec driver中，会通过调用snd_soc_register_component函数新建component
+```c
+int snd_soc_register_component(device, snd_soc_component_driver, snd_soc_dai_driver, num_dai) {
+	struct snd_soc_component *comp;
+    ret = snd_soc_component_initialize(comp, component_driver);
+    snd_soc_register_dais(comp, dai_driver, num_dai, true)
+    snd_soc_component_add(comp)
+
+}
+```
+2. componnet的意义是什么？
 
 ##### 2) snd_card_new
 > 分配初始化card的核心设备结构snd_card(snd_soc_card->snd_card)
