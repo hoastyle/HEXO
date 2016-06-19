@@ -6,5 +6,8 @@ comments: false
 
 ## Hello!
 My name is Hao(梁浩) and I'm a software engineer based in Shanghai, China.
+Currently, my main area is embedded software development, including linux driver, uboot, buildroot, uC/OS. Also familiar with linux kernel.
 
-**We choose to go to the moon**
+## Contact
+**Email**: hao.c.code@gmail.com
+**github**: https://github.com/hoastyle

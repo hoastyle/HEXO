@@ -5,7 +5,7 @@ categories: [Tech, OS, Linux, Driver, Audio]
 tags:
 	- ALSA
 	- ASoC
-	- linux
+	- Linux
 	- driver
 ---
 
