@@ -60,3 +60,9 @@ void __init driver_init(void) {
 ## 电源管理
 
 ## 热插拔
+
+# 参考
+* 深入Linux设备驱动程序内核机制
+* Linux设备驱动程序 第三版
+* [蜗窝科技 同一设备模型](http://www.wowotech.net/sort/device_model)
+[Linux设备模型浅析之uevent篇](http://wenku.baidu.com/view/3f08de275901020207409cd4.html)
