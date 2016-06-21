@@ -14,6 +14,7 @@ tags:
 kobject最早是用来作为引用计数，用来跟踪被嵌入对象（参考kobject的使用方式）生命周期。
 而随着kernel的不断升级，kobject承担的任务越来越多。
 
+<!--more-->
 * 被嵌入对象的引用计数
 * sysfs node
 * 通过kobject将设备模型实现为一个多层次的体系结构
@@ -238,9 +239,105 @@ struct kobj_type {
 };
 ```
 在通过kobject_init初始化kobject时，会传入kobj_type函数。
+其中三个部分需要讨论
+* release: 是每个kobject必须要定义的函数，当该Kobject的计数变为0时，将会运行kobj_type->release函数，往往用于清楚对象。
+* sysfs_ops
+* attribute
 
+关于sysfs_ops和attribute，定义如下
+```c
+struct sysfs_ops {
+    ssize_t (*show)(struct kobject *, struct attribute *,char *);
+    ssize_t (*store)(struct kobject *,struct attribute *,const char *, size_t);
+};
+
+struct attribute {
+    const char      *name;
+    mode_t          mode;
+}
+```
+究竟上述两个部分的作用是什么呢？
+在之前的kobject_add中，关于create_dir的部分本来是留到sysfs篇中，但是其中一部分和kobj_type，所以在这里提前说明。
+```c
+kobject_add
+	kobject_add_internal
+		create_dir
+			sysfs_create_dir
+			populate_dir
+```
+其中pupulate_dir中调用了sysfs_create_file函数，该函数是这部分的重点，来看代码
+```c
+static int populate_dir(struct kobject *kobj)
+{
+	struct kobj_type *t = get_ktype(kobj);
+	struct attribute *attr;
+	int error = 0;
+	int i;
+	
+	if (t && t->default_attrs) {
+	    for (i = 0; (attr = t->default_attrs[i]) != NULL; i++) {
+	        error = sysfs_create_file(kobj, attr);
+	        if (error)
+	            break;
+	    }
+	}
+	return error;
+}
+```
+populate_dir中，会轮询kobj->kobj_type中的attr，并以此调用sysfs_create_file函数。
+```c
+iint sysfs_create_file(struct kobject * kobj, const struct attribute * attr)
+{
+    BUG_ON(!kobj || !kobj->sd || !attr);
+    return sysfs_add_file(kobj->sd, attr, SYSFS_KOBJ_ATTR);
+}
+
+//create an attribute file for an object
+int sysfs_add_file(struct sysfs_dirent *dir_sd, const struct attribute *attr,
+           int type)
+{
+    return sysfs_add_file_mode(dir_sd, attr, type, attr->mode);
+}
+
+int sysfs_add_file_mode(struct sysfs_dirent *dir_sd,
+            const struct attribute *attr, int type, mode_t amode)
+{
+    umode_t mode = (amode & S_IALLUGO) | S_IFREG;
+    struct sysfs_addrm_cxt acxt;
+    struct sysfs_dirent *sd;
+    int rc;
+
+    sd = sysfs_new_dirent(attr->name, mode, type);
+    if (!sd)
+        return -ENOMEM;
+    sd->s_attr.attr = (void *)attr;
+    sysfs_dirent_init_lockdep(sd);
+
+    sysfs_addrm_start(&acxt, dir_sd);
+    rc = sysfs_add_one(&acxt, sd);
+    sysfs_addrm_finish(&acxt);
+
+    if (rc)
+        sysfs_put(sd);
+
+    return rc;
+}
+```
+
+由上可知，kobject_add将根据kobj_type中的attr在kobject对应的dir下建立属性文件。
+
+在用户空间中，如果要使用该属性文件。首先需要通过open("name", mode)打开该文件。open最终调用到系统sysfs_open_file，该函数
+* buffer->ops = ops
+* file->private_data = buffer
+
+在用户空间对该文件进行读写时，将根据file->private_data获取buffer，并根据buffer->ops中的show或者store，进行相应的操作。
+
+既然后sysfs_create_file，必然有移除sysfs file的函数，也就是sysfs_remove_file.
 
 # kobject和sysfs的关系
+经过上面的分析之后，kobject和sysfs的关系已经慢慢浮出水面。
+
+kobject可以说是sysfs目录节点所对应的实例，该目录节点中的属性文件是根据kobj_type中的attr创建，属性文件的读写是根据kobj_type中的show和store函数进行操作。
 
 # kobject和kset的关系
 
