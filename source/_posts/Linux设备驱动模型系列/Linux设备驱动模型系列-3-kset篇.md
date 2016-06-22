@@ -138,14 +138,12 @@ kobj_attr_show会执行kobj_attribute->show函数, 同理kobj_attr_store会执�
 应该要和sysfs_remove_file搭配使用.
 
 # 热插拔
-从硬件到软件
+硬件 -> kobject_uevent -> 用户空间
+
+硬件插入到kobject_uevent这一段是如何发生的？
 
 uevent的作用是将内核发生的一些事件通知到用户空间，同时运行特定的用户空间程序
 * hotplug
 * udev
 * mdev busybox
 以上的程序（大部分是一些脚本）会根据内核空间的事件进行操作，包括新建设备节点等。
-
-现在的问题是，硬件插入到kobject_uevent这一段是如何发生的？
-
-
