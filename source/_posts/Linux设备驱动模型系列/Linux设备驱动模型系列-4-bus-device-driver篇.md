@@ -331,3 +331,5 @@ __device_attach
 #### device_unregister
 
 # driver
+
+从三个结合起来的角度，讨论各个部分的关系和每个部分设计的原因
