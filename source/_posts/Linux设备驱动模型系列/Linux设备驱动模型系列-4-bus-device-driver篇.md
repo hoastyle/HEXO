@@ -6,7 +6,6 @@ tags:
 ---
 
 bus, device, driver作为整个系列文章的第四篇，将会介绍Linux设备驱动模型的中层抽象，也就是bus、device、driver.
-> 讨论优缺点
 
 # bus
 总线(bus)是处理器和一个或者多个设备之间的通道。在设备模型中，所有的设备都通过总线连接。总线既可以是实际物理总线（I2C等）的抽象，也可以是处于Linux设备驱动模型架构需要而虚拟出的”平台总线“。
@@ -47,11 +46,11 @@ struct bus_type {
 };
 ```
 主要的成员介绍如下
-* 1 dev_root
-* 2 dev_attrs
-* 3 bus_groups, dev_groups, drv_groups
-* 4 match
-* 5 subsys_private
+* dev_root
+* dev_attrs
+* bus_groups, dev_groups, drv_groups
+* match
+* subsys_private
 
 ### dev_root
 默认parent device?
@@ -326,8 +325,6 @@ __device_attach
 			drv->probe
 ```
 
-#### device_unregister
-
 # driver
 ## driver数据结构
 driver在内核中的数据结构如下：
@@ -600,23 +597,7 @@ cp->subsys通过kset_register加入到系统中，因为subsys.kobj.kset = class
 
 以上是创建class的过程。
 
-之前的介绍中提到过，device的创建和class有关系，下面就来分析class对device创建的影响。其相关函数为device_create.
-```c
-<drivers/base/core.c>
-
-struct device *device_create(struct class *class, struct device *parent,
-                 dev_t devt, void *drvdata, const char *fmt, ...)
-{
-    va_list vargs;
-    struct device *dev;
-
-    va_start(vargs, fmt);
-    dev = device_create_vargs(class, parent, devt, drvdata, fmt, vargs);
-    va_end(vargs);
-    return dev;
-}
-EXPORT_SYMBOL_GPL(device_create);
-```
+## 如何创建一个class?
 
 # 属性文件
 属性文件框架的核心是attribute以及sysfs_create_file.
@@ -746,3 +727,23 @@ static int device_add_attrs(struct device *dev)
 	...
 }
 ```
+
+## 默认属性文件
+* uevent
+* probe
+* autoprobe
+
+### uevent属性文件
+该部分的实现在driver/base/core.c中。
+uevent的读取：会输出uevent env
+uevent的写入：会根据写入的action，引起kobject_uevent的操作
+
+### probe 和 autoprobe
+该部分你的实现在driver/base/bus.c中。
+```c
+static BUS_ATTR(drivers_probe, S_IWUSR, NULL, store_drivers_probe);
+static BUS_ATTR(drivers_autoprobe, S_IWUSR | S_IRUGO,
+        show_drivers_autoprobe, store_drivers_autoprobe);
+```
+autoprobe文件用来改变autoprobe变量的值。
+probe文件是只写，用来手动启动一次probe.
