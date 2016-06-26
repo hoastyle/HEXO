@@ -61,14 +61,13 @@ struct bus_type {
 
 ### bus_groups, dev_groups, drv_groups
 
-## match
+### match
 对试图挂载到该总线上的device和driver执行的匹配操作。
 
 什么时候回调用？
 
-
-
 ### subsys_private
+适用于bus和class.
 该结构用来管理bus, driver, device之间的关系。
 
 ```c
@@ -103,7 +102,7 @@ struct subsys_private {
 * buses_init
 * bus_register
 
-### buses_init
+### bus的起源buses_init
 在系列第一篇中，提到了driver_init函数，其中调用了buses_init. 这个函数是系统中所有bus的起源。
 ```c
 	bus_kset = kset_create_and_add("bus", &bus_uevent_ops, NULL);
@@ -232,7 +231,7 @@ struct device {
     void    (*release)(struct device *dev);
 };
 ```
-其中以下成员值得关注
+其中以下成员需要关注
 * struct device *parent
 > 当前device的父设备，作用是什么？层次关系在kobject中不是已经表明了么？
 * struct device_private *p
@@ -321,8 +320,7 @@ void bus_probe_device(struct device *dev)
 __device_attach
 	__device_match_device	//根据drv->bus->match判断是否匹配
 	driver_probe_device
-		really_probe
-			//如果有dev->bus->probe
+		really_probe //如果有dev->bus->probe
 			dev->bus->probe
 			//如果有drv->probe
 			drv->probe
@@ -331,5 +329,420 @@ __device_attach
 #### device_unregister
 
 # driver
+## driver数据结构
+driver在内核中的数据结构如下：
+```c
+struct device_driver {
+    const char      *name;
+    struct bus_type     *bus;
 
-从三个结合起来的角度，讨论各个部分的关系和每个部分设计的原因
+    struct module       *owner;
+    const char      *mod_name;  /* used for built-in modules */
+
+    bool suppress_bind_attrs;   /* disables bind/unbind via sysfs */
+
+    const struct of_device_id   *of_match_table;
+    const struct acpi_device_id *acpi_match_table;
+
+    int (*probe) (struct device *dev);
+    int (*remove) (struct device *dev);
+    void (*shutdown) (struct device *dev);
+    int (*suspend) (struct device *dev, pm_message_t state);
+    int (*resume) (struct device *dev);
+    const struct attribute_group **groups;
+
+    const struct dev_pm_ops *pm;
+
+    struct driver_private *p;
+};
+```
+
+分析其中的四个成员
+* struct module *owner
+驱动所在的内核模块，该部分在哪里会用到？作用是什么
+* const struct of_device_id *of_match_table
+* probe
+驱动程序的探测函数，当bus中将驱动和对应的设备绑定时(bus_probe_device)，内核会首先调用bus中的probe函数，如果bus没有实现自己的probe函数，内核会调用驱动程序的probe函数。
+* struct driver_private *p
+
+## driver的函数
+通过driver_reigster向系统注册驱动，其核心代码如下：
+```c
+<driver/base/driver.c>
+
+int driver_register(struct device_driver *drv)
+{
+	other = driver_find(drv->name, drv->bus);
+	ret = bus_add_driver(drv);
+	ret = driver_add_groups(drv, drv->groups);
+	object_uevent(&drv->p->kobj, KOBJ_ADD);
+}
+```
+
+driver_find用来确认driver是否在系统中注册过，通过Bus指名查找的总线，如果成功返回指针，否则返回0.
+如果驱动没有被注册，那么通过bus_add_driver(drv)向系统注册。
+
+```c
+int bus_add_driver(struct device_driver *drv)
+{
+    struct bus_type *bus;
+    struct driver_private *priv;
+    int error = 0;
+
+    bus = bus_get(drv->bus);
+    if (!bus)
+        return -EINVAL;
+
+    priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+	//driver对应的devices?
+    klist_init(&priv->klist_devices, NULL, NULL);
+    priv->driver = drv;
+    drv->p = priv;
+	//driver kobj对应的kset是bus的drivers_kset
+    priv->kobj.kset = bus->p->drivers_kset;
+	//建立的sys目录在/sys/bus/bus_name/drivers/drv->name
+    error = kobject_init_and_add(&priv->kobj, &driver_ktype, NULL,
+                     "%s", drv->name);
+
+	//将device_driver->driver_private->knode_bus作为节点加入bus->p->klist_drivers中
+    klist_add_tail(&priv->knode_bus, &bus->p->klist_drivers);
+	//如果drivers_autoprobe置1，则通过driver_attach将driver和device绑定
+    if (drv->bus->p->drivers_autoprobe) {
+        error = driver_attach(drv);
+        if (error)
+            goto out_unregister;
+    }
+    module_add_driver(drv->owner, drv);
+
+    error = driver_create_file(drv, &driver_attr_uevent);
+    error = driver_add_groups(drv, bus->drv_groups);
+	...
+}
+```
+
+driver_attach函数用来匹配device和driver
+```c
+int driver_attach(struct device_driver *drv)
+{
+    return bus_for_each_dev(drv->bus, NULL, drv, __driver_attach);
+}
+
+int bus_for_each_dev(struct bus_type *bus, struct device *start,
+             void *data, int (*fn)(struct device *, void *))
+{
+    struct klist_iter i;
+    struct device *dev;
+    int error = 0;
+
+    klist_iter_init_node(&bus->p->klist_devices, &i,
+                 (start ? &start->p->knode_bus : NULL));
+    while ((dev = next_device(&i)) && !error)
+        error = fn(dev, data);
+    klist_iter_exit(&i);
+    return error;
+}
+
+
+static int __driver_attach(struct device *dev, void *data)
+{
+    struct device_driver *drv = data;
+
+    if (!driver_match_device(drv, dev))
+        return 0;
+
+    if (dev->parent)    /* Needed for USB */
+        device_lock(dev->parent);
+    device_lock(dev);
+	//实际的绑定函数
+    if (!dev->driver)
+        driver_probe_device(drv, dev);
+    device_unlock(dev);
+    if (dev->parent)
+        device_unlock(dev->parent);
+
+    return 0;
+}
+```
+
+在device_add函数中，会通过bus_probe_device调用device_attach函数，而在driver_register中，经过层层调用最后会调用到driver_attach函数。这两个函数最后都会调用really_probe函数。
+
+而在really_probe函数中，如果bus有probe函数，会调用dev->bus->probe。如果bus没有probe，会调用driver的probe函数。
+
+# class
+class不同于bus/device/driver，是完全抽象出来的概念。常见的有block, tty, input等。
+
+## class example
+class_simple example from ldd3
+
+以input子系统为例。
+
+## class的起源
+通过classes_init创建了/sys/class目录(kset_create_and_add)，对应的内核对象为class_kset，所谓系统中所有class内核对象的顶层kset.
+
+## class
+```c
+struct class {
+      const char      *name;
+      struct module       *owner;
+
+      struct class_attribute      *class_attrs;
+      const struct attribute_group    **dev_groups;
+      struct kobject          *dev_kobj;
+
+      int (*dev_uevent)(struct device *dev, struct kobj_uevent_env *env);
+      char *(*devnode)(struct device *dev, umode_t *mode);
+
+      void (*class_release)(struct class *class);
+      void (*dev_release)(struct device *dev);
+
+      int (*suspend)(struct device *dev, pm_message_t state);
+      int (*resume)(struct device *dev);
+
+      const struct kobj_ns_type_operations *ns_type;
+      const void *(*namespace)(struct device *dev);
+
+      const struct dev_pm_ops *pm;
+
+      struct subsys_private *p;
+  };
+```
+* owner
+* class_attrs
+* dev_groups
+* subsys_private *p
+
+## class和系统的关系 
+和class以及系统相关的函数主要是以下几个
+* class注册
+    * class_create
+    * class_register
+* device_create
+
+### class_create && class_register
+```c
+class_register(class)
+    __class_register(class, &__key)
+
+class_create(owner, name)
+    __class_create(owner, name, &__key)
+        class->name = name;
+        class->owner = owner;
+        class->release = class_release;
+
+        __class_register(class, &__key)            
+```
+这两个函数都调用了__class_register
+```c
+int __class_register(struct class *cls, struct lock_class_key *key)
+{
+    struct subsys_private *cp;
+
+    cp = kzalloc(sizeof(*cp), GFP_KERNEL);
+    klist_init(&cp->klist_devices, klist_class_dev_get, klist_class_dev_put);
+    INIT_LIST_HEAD(&cp->interfaces);
+    kset_init(&cp->glue_dirs);
+    __mutex_init(&cp->mutex, "subsys mutex", key);
+    error = kobject_set_name(&cp->subsys.kobj, "%s", cls->name);
+
+    /* set the default /sys/dev directory for devices of this class */
+    if (!cls->dev_kobj)
+        cls->dev_kobj = sysfs_dev_char_kobj;
+
+    cp->subsys.kobj.kset = class_kset;
+    cp->subsys.kobj.ktype = &class_ktype;
+    cp->class = cls;
+    cls->p = cp;
+
+    error = kset_register(&cp->subsys);
+    error = add_class_attrs(class_get(cls));
+}
+```
+目录对应的kobj_type就是class_ktype，也就决定了对该目录的操作最后会调用到class_ktype中的sysfs_ops.
+```c
+static ssize_t class_attr_show(struct kobject *kobj, struct attribute *attr,
+                   char *buf)
+{
+    struct class_attribute *class_attr = to_class_attr(attr);
+    struct subsys_private *cp = to_subsys_private(kobj);
+    ssize_t ret = -EIO;
+
+    if (class_attr->show)
+        ret = class_attr->show(cp->class, class_attr, buf);
+    return ret;
+}
+
+static ssize_t class_attr_store(struct kobject *kobj, struct attribute *attr,
+                const char *buf, size_t count)
+{
+    struct class_attribute *class_attr = to_class_attr(attr);
+    struct subsys_private *cp = to_subsys_private(kobj);
+    ssize_t ret = -EIO;
+
+    if (class_attr->store)
+        ret = class_attr->store(cp->class, class_attr, buf, count);
+    return ret;
+}
+
+static const struct sysfs_ops class_sysfs_ops = {
+    .show      = class_attr_show,
+    .store     = class_attr_store,
+};
+
+static struct kobj_type class_ktype = {
+    .sysfs_ops  = &class_sysfs_ops,
+    .release    = class_release,
+    .child_ns_type  = class_child_ns_type,
+};
+```
+在class对应的sysfs_ops中，show最后会调用class_attribute->show, store会调用class_attribute->store.
+cp->subsys通过kset_register加入到系统中，因为subsys.kobj.kset = class_kset，所以对应的目录是/sys/class/cls->name.
+最后通过add_class_attrs添加目录下的属性文件，其属性文件通过class->class_attrs指定。
+
+以上是创建class的过程。
+
+之前的介绍中提到过，device的创建和class有关系，下面就来分析class对device创建的影响。其相关函数为device_create.
+```c
+<drivers/base/core.c>
+
+struct device *device_create(struct class *class, struct device *parent,
+                 dev_t devt, void *drvdata, const char *fmt, ...)
+{
+    va_list vargs;
+    struct device *dev;
+
+    va_start(vargs, fmt);
+    dev = device_create_vargs(class, parent, devt, drvdata, fmt, vargs);
+    va_end(vargs);
+    return dev;
+}
+EXPORT_SYMBOL_GPL(device_create);
+```
+
+# 属性文件
+属性文件框架的核心是attribute以及sysfs_create_file.
+
+attribute作为嵌入式的结构被嵌入各式各样的xxx_attribute结构体中，xxx_attribute中包含了对应的xxx_show和xxx_store函数。
+sysfs_create_file(kobj, attr)会根据kobj确认path，根据attr建立文件。
+那么属性文件对应的操作如何确定？
+这就需要kobj_type的帮助，在kobj_type->sysfs_ops中的show和store函数中，会通过attr找到被嵌入的xxx_attribute结构体，然后调用相应的show和store函数。
+
+## bus_attribute
+```c
+struct attribute {
+    const char      *name;
+    umode_t         mode;
+};
+
+struct bus_attribute {
+    struct attribute    attr;
+    ssize_t (*show)(struct bus_type *bus, char *buf);
+    ssize_t (*store)(struct bus_type *bus, const char *buf, size_t count);
+};
+```
+
+该结构体通过BUS_ATTR(_name, _mode, _show, _store)构建，会初始化结构为bus_attribute的bus_attr_name的变量。
+并通过bus_create_file建立属性文件。对于bus来说，属性文件的目录层级通过bus_type决定。
+```c
+int bus_create_file(struct bus_type *bus, struct bus_attribute *attr)
+{
+    int error;
+    if (bus_get(bus)) {
+        error = sysfs_create_file(&bus->p->subsys.kobj, &attr->attr);
+        bus_put(bus);
+    } else
+        error = -EINVAL;
+    return error;
+}
+```
+其文件对应的操作方式由bus_ktype中的bus_sysfs_ops决定：
+```c
+static ssize_t bus_attr_show(struct kobject *kobj, struct attribute *attr,
+                 char *buf)
+{
+    struct bus_attribute *bus_attr = to_bus_attr(attr);
+    struct subsys_private *subsys_priv = to_subsys_private(kobj);
+    ssize_t ret = 0;
+
+    if (bus_attr->show)
+        ret = bus_attr->show(subsys_priv->bus, buf);
+    return ret;
+}
+
+static ssize_t bus_attr_store(struct kobject *kobj, struct attribute *attr,
+                  const char *buf, size_t count)
+{
+    struct bus_attribute *bus_attr = to_bus_attr(attr);
+    struct subsys_private *subsys_priv = to_subsys_private(kobj);
+    ssize_t ret = 0;
+
+    if (bus_attr->store)
+        ret = bus_attr->store(subsys_priv->bus, buf, count);
+    return ret;
+}
+
+static const struct sysfs_ops bus_sysfs_ops = {
+    .show   = bus_attr_show,
+    .store  = bus_attr_store,
+};
+
+static struct kobj_type bus_ktype = {
+    .sysfs_ops  = &bus_sysfs_ops,
+    .release    = bus_release,
+};
+```
+
+## device_attribute
+## driver_attribute
+以上两部分和bus_attribute相似，就略过了。
+
+## attribute_group
+attribute_group的作用就是将多个attr放在一个group中，方便管理。
+
+以i2c为例
+```c
+<driver/i2c/i2c-core.c>
+
+static struct attribute *i2c_dev_attrs[] = {
+    &dev_attr_name.attr,
+    /* modalias helps coldplug:  modprobe $(cat .../modalias) */
+    &dev_attr_modalias.attr,
+    NULL
+};
+//生成i2c_dev_groups
+ATTRIBUTE_GROUPS(i2c_dev);
+
+static struct device_type i2c_client_type = {
+    .groups     = i2c_dev_groups,
+    .uevent     = i2c_device_uevent,
+    .release    = i2c_client_dev_release,
+};
+```
+其中ATTRIBUTE_GROUPS在include/linux/sysfs.h中定义
+```c
+#define ATTRIBUTE_GROUPS(_name)                 \
+static const struct attribute_group _name##_group = {       \
+    .attrs = _name##_attrs,                 \
+};                              \
+__ATTRIBUTE_GROUPS(_name)
+```
+整个device_type会赋值给device.type，然后device_register会生成属性文件。
+
+如果group赋值给class->dev_groups或者device_type->groups或者dev->groups, 那么将在bus_add_device中通过device_register->device_add->device_add_attrs中
+
+```c
+<drivers/base/core.c>
+
+static int device_add_attrs(struct device *dev)
+{
+    struct class *class = dev->class;
+    const struct device_type *type = dev->type;
+    int error;
+
+    error = device_add_groups(dev, class->dev_groups);
+
+    error = device_add_groups(dev, type->groups);
+
+    error = device_add_groups(dev, dev->groups);
+	...
+}
+```

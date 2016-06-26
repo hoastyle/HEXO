@@ -9,7 +9,7 @@ tags:
 ---
 
 <blockquote class="blockquote-center">
-本系列主要介绍讨论Linux设备驱动模型，该模型是个非常复杂的系统。从上而下，其主要由总线、设备、驱动构成。从下而上，为了实现这些组件间的相互关系，定义了kobject以及kset两个底层的数据结构。以上两种底层数据结构和sysfs相交互，通过sysfs向用户空间展示了各个组件间的相互联系以及层次结构，并且以文件的形式向用户空间提供了简单访问双内核的方法。
+本系列主要介绍讨论Linux设备驱动模型，该模型是个非常复杂的系统。从上而下，其主要由总线、设备、驱动构成。从下而上，为了实现这些组件间的相互关系，定义了kobject以及kset两个底层的数据结构。以上两种底层数据结构和sysfs相交互，通过sysfs向用户空间展示了各个组件间的相互联系以及层次结构，并且以文件的形式向用户空间提供了简单访问内核的方法。
 </blockquote>
 
 为了更容易理解Linux设备驱动模型，整个系列采用由下而上的方式进行分析。
@@ -17,7 +17,7 @@ tags:
 
 # 底层
 ## kobject
-最早期是为了计数，其唯一的成员就是kref.
+最早期是为了计数，其唯一的成员就是kref. 随着设备驱动模型的发展和建立，kobject成为模型中所有对象的基本结构。
 
 ## kset
 kset实质上来说是kobject的扩展，和kobject最大的不同就是uevent(热插拔的底层实现).
@@ -26,7 +26,6 @@ kset实质上来说是kobject的扩展，和kobject最大的不同就是uevent(�
 层次结构上，其作用和Kobject无区别，只是作为一个普通目录。kset相当于一个kobject容器，该容器内所有的kobject的热插拔都通过kset->uevent函数实现。单独的kobject(没有对应的kset)，将会失去热插拔的特性。
 
 # 中层
-
 中层部分的核心就是三个组件，分别是bus、device、type. 驱动程序员主要接触的就是该部分。
 问题：
 * 1 那么这部分的优缺点分别是什么？
@@ -62,8 +61,6 @@ void __init driver_init(void) {
 }
 ```
 driver_init中包含了整个设备模型中用到的所有相关模块的初始化。
-
-这些初始化函数中做了什么？
 
 ### devices_init
 先看代码
@@ -123,9 +120,9 @@ sys/class
 
 ## driver
 
-# 上层
 ## class
 
+# 上层
 ## sysfs
 
 ## 电源管理
@@ -142,7 +139,7 @@ sys/class
 
 # Linux设备驱动模型系列文章
 * [Linux设备驱动模型系列 - 1 系列结构篇]()
-* [Linux设备驱动模型系列 - 2 kobject篇]
-* [Linux设备驱动模型系列 - 3 kset篇]
-* [Linux设备驱动模型系列 - 4 bus device driver篇]()
-* [Linux设备驱动模型系列 - 5 sysfs篇]()
+* [Linux设备驱动模型系列 - 2 kobject篇](http://hoastyle.github.io/2016/06/19/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B%E7%B3%BB%E5%88%97/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B%E7%B3%BB%E5%88%97-2-kobject%E7%AF%87/)
+* [Linux设备驱动模型系列 - 3 kset篇](http://hoastyle.github.io/2016/06/19/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B%E7%B3%BB%E5%88%97/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B%E7%B3%BB%E5%88%97-3-kset%E7%AF%87/)
+* [Linux设备驱动模型系列 - 4 bus device driver篇](http://hoastyle.github.io/2016/06/19/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B%E7%B3%BB%E5%88%97/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B%E7%B3%BB%E5%88%97-4-bus-device-driver%E7%AF%87/)
+* [Linux设备驱动模型系列 - 5 sysfs篇](http://hoastyle.github.io/2016/06/19/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B%E7%B3%BB%E5%88%97/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B%E7%B3%BB%E5%88%97-5-sysfs%E7%AF%87/)
