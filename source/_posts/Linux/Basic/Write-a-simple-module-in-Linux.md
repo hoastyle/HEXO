@@ -70,8 +70,8 @@ $ make -C $KDIR M=$PWD /
 > 上面这行命令即可以放在Kbuild文件中，也可以放在Makefile中。
 
 ### 源文件为多个文件
-obj-m := <module_name>.o
-<module_name>-y := <src1>.o <src2>.o ...
+`obj-m := <module_name>.o`
+`<module_name>-y := <src1>.o <src2>.o ...`
 
 更多的用法请参考/Documentation/kbuild/makefiles.txt
 以 module 8123.ko为例，包括4个文件
