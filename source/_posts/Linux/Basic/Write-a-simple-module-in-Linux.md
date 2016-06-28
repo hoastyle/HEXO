@@ -11,37 +11,54 @@ tags:
 
 <blockquote class="blockquote-center"><font size="5">**编写，编译并安装简单的内核模块**</font></blockquote>
 
-# Build External Modules
-"kbuild"是Linux kernel所使用的编译系统。为了使modules和编译框架兼容并保证gcc flag的正确性，必须使用kbuild编译modules.
-kbuild提供in-tree编译和out-of-tree编译功能。
+本文主要介绍了以下内容：
+* module的简单介绍
+* 在Linux中编译module
+* Simple driver module example
+* what is module?
+* module and Linux
 
-external module的作者除了提供module之外，还需要提供一个makefile文件，用户只需要简单的通过"make"命令就可以编译这个模块。
+# module的简单介绍
+module也就是模块，其优点在于可以动态扩展核心部分的功能而无需将整个软件产品重新编译连接。广义上来说，Windows上动态链接库DLL是一种module. Linux中的共享库so也可以称为module.
+而本文中的module，特指Linux内核模块。Linux内核模块可以在系统运行期间动态扩展系统功能而无需重新启动或者无需重新编译整个系统。内核模块的这个特性为Linux内核的开发者提供了很大的便利。
 
 <!--more-->
+Linux内核模块以ko的形式存在，可以通过：
+`$ insmod test.ko`
+`$ rmmod test`
+对模块进行加载和卸载。
+
+# 在Linux中编译module
+**Kbuild**是Linux kernel所使用的编译系统。为了使modules和编译框架兼容并保证gcc flag的正确性，必须使用kbuild编译module.
+Kbuild提供in-tree编译和out-of-tree编译功能。
+
+为了能够简便快捷的编译模块，module的作者除了提供module代码之外，还需要提供一个makefile文件，用户只需要简单的通过"make"命令就可以编译这个模块。
 
 ## How to Build External Modules
-为了编译一个external module, 必须有一个包含了编译过程中使用的配置文件和头文件的prebuild内核。如果你正在使用的是发行版的内核，那么会有一个包含了上述文件的package.
+首先，为了编译一个external module, 必须有一个包含了编译过程中使用的配置文件和头文件的prebuild内核。如果你正在使用的是发行版的内核，那么会有一个包含了上述文件的package.
 
 > 问题1： `make modules_prepare的用法`
 
-### 命令
+### 编译模块的相关命令
 编译一个外部模块的命令：
 `$ make -C <path_of_kernel_src> M=$PWD`
 
-其中，"-C"的意思是将目录切换到directory. M不是make的选项，而是内核根目录下Makefile使用的变量，表明external module的位置.
+其中，"-C"的意思是将目录切换到directory. M不是make的选项，而是内核根目录下Makefile使用的变量，表明external module的文件所在目录.
 
-使用running kernel编译external module:
+使用正在使用的内核编译external module:
 `make -C /lib/modules/'uname -r'/build M=$PWD`
 
-在通过modules_install安装刚刚编译的external modules
+在通过modules_install安装(只是将生成的ko移动到特定的目录下)刚刚编译的external modules
 `make -C /lib/modules/'uname -r'/build M=$PWD modules_install`
 modules_install会将生成的ko文件拷贝到/lib/modules/$(version)/extra/下，并通过depmod更新模块间的依赖信息modules.dep。
-有了该信息，就可以通过`$ modprobe module_name`加载模块了。
+有了该信息，就可以通过`$ modprobe module_name`加载模块。
 
-### Targets of make in Linux
+### Make target in Linux
+这里指的target是在编译命令中的target，如下所示：
+`make -C &KDIR M=$PWD [target]`
+
 在编译外部模块时，只有以下几个make targets是可用的。
 
-`make -C &KDIR M=$PWD [target]`
 * modules
 	和make不带任何target的作用一样。
 * modules_install
@@ -79,7 +96,6 @@ $ make -C $KDIR M=$PWD /
 * 8123_if.h
 * 8123_pci.c
 * 8123_bin.o_shipped
-
 
 ### 共享makefile
 External module往往会搭配一个makefile文件，支持“make”命令编译module.
@@ -180,10 +196,6 @@ out-tree默认安装在/lib/modules/$(KERNELRELEASE)extra
 # Example
 参考代码：[simple driver](https://github.com/hoastyle/Learn/tree/master/Linux/driver/Exercise/hello/simple)
 简单字符设备参考代码：[char driver](https://github.com/hoastyle/Learn/tree/master/Linux/driver/Exercise/hello/char)
-
-# module
-
-# 参数
 
 # 参考
 * [编写属于你的第一个Linux内核模块](http://blog.jobbole.com/72115/)
