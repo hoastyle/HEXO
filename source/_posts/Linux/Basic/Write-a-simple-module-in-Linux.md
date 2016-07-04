@@ -19,7 +19,7 @@ tags:
 * module and Linux
 
 # module的简单介绍
-module也就是模块，其优点在于可以动态扩展核心部分的功能而无需将整个软件产品重新编译连接。广义上来说，Windows上动态链接库DLL是一种module. Linux中的共享库so也可以称为module.
+module也就是模块，其优点在于可以动态扩展核心部分的功能而无需将整个软件重新编译连接。广义上来说，Windows上动态链接库DLL是一种module. Linux中的共享库so也可以称为module.
 而本文中的module，特指Linux内核模块。Linux内核模块可以在系统运行期间动态扩展系统功能而无需重新启动或者无需重新编译整个系统。内核模块的这个特性为Linux内核的开发者提供了很大的便利。
 
 <!--more-->
@@ -193,9 +193,41 @@ out-tree默认安装在/lib/modules/$(KERNELRELEASE)extra
 `$ make INSTALL_MOD_DIR=path modules_install`
 当前安装目录：/lib/modules/$(KERNELRELEASE)/path
 
-# Example
+# Simple driver module example
 参考代码：[simple driver](https://github.com/hoastyle/Learn/tree/master/Linux/driver/Exercise/hello/simple)
 简单字符设备参考代码：[char driver](https://github.com/hoastyle/Learn/tree/master/Linux/driver/Exercise/hello/char)
+
+# What is module?
+## module的结构
+通过上面的example可以编译得到char.ko.
+`$ file char.ko`
+输出信息
+`char.ko: ELF 64-bit LSB  relocatable, x86-64, version 1 (SYSV), BuildID[sha1]=9d786825c5b731e712f3cff0c78ead53b9351692, not stripped`
+
+可以知道module以ELF的格式存在。
+
+ELF的格式
+* header: 信息 + 指向section header table
+* section: 
+* section header table: 指向section
+
+详情参考《程序员的自我修养-链接、装载与库》
+
+## 模块的动态加载和动态卸载
+### 动态加载
+切入点当然是`insmod char.ko`，可以通过strace追踪该命令究竟做了什么。
+
+分析方法： strace + insmod的实现（busybox/modutils/insmod.c）
+
+insmod -> init_module -> kernel/module.c: sys_init_module
+	copy from user
+	load_module
+
+### 动态卸载
+
+EXPORT_SYMBOL
+
+# module and Linux
 
 # 参考
 * [编写属于你的第一个Linux内核模块](http://blog.jobbole.com/72115/)

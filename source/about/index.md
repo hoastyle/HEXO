@@ -12,4 +12,6 @@ Currently, my main area is embedded software development, including linux driver
 **Email**: hao.c.code@gmail.com
 **github**: https://github.com/hoastyle
 
-**正在寻找靠谱的工作，希望可以是物联网相关的行业**
+## Working Rules
+以创始人的角度看待自己，成为一个团队、一个家庭或一种文化的创始人。
+希望和最优秀的人共事，也希望自己不断完善，成为一个优秀的人。
