@@ -18,6 +18,10 @@ tags:
 * what is module?
 * module and Linux
 
+> 注意
+* 文章中的所有Example都基于ARM架构
+* Licence: GPL
+
 # module的简单介绍
 module也就是模块，其优点在于可以动态扩展核心部分的功能而无需将整个软件重新编译连接。广义上来说，Windows上动态链接库DLL是一种module. Linux中的共享库so也可以称为module.
 而本文中的module，特指Linux内核模块。Linux内核模块可以在系统运行期间动态扩展系统功能而无需重新启动或者无需重新编译整个系统。内核模块的这个特性为Linux内核的开发者提供了很大的便利。
@@ -197,6 +201,106 @@ out-tree默认安装在/lib/modules/$(KERNELRELEASE)extra
 参考代码：[simple driver](https://github.com/hoastyle/Learn/tree/master/Linux/driver/Exercise/hello/simple)
 简单字符设备参考代码：[char driver](https://github.com/hoastyle/Learn/tree/master/Linux/driver/Exercise/hello/char)
 
+其中，选择重要的部分进行说明。
+
+## 模块中的基本头文件
+以下三个头文件是必须的
+```c
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+```
+
+init.h定义了驱动初始化和退出相关的函数。
+module.h定义了模块相关的函数、变量以及宏。
+kernel.h定义了经常用到的函数原型以及宏。
+
+## module_init & module_exit
+基本上每个Linux驱动中都有module_init和module_exit.
+
+其作用是根据需求添加对应的module初始化函数。
+那么为什么不直接加在统一的初始化函数中呢？(在前面的文章中提到过类似的统一初始化函数driver_init)。
+通过这种方式，可以分离出统一的初始化函数。新增驱动的初始化函数只需要通过该宏加入系统中即可，而不用每次修改统一的初始化函数，增强了系统的灵活性，可移植性，也使其层次更明晰。并且，通过这种方式，可以灵活的定义驱动初始化的优先级。
+
+module_init定义于module.h中，如下
+```c
+typedef int (*initcall_t)(void);
+
+#define __define_initcall(fn, id) \
+	static initcall_t __initcall_##fd_##id __used \
+	__attribute__ ((__section__(".initcall" #id ".init"))) = fn;
+#define device_initcall(x) __define_initcall(x, 6)
+#define __initcall(x) device_initcall(x)
+#define module_init(x) __initcall(x)
+```
+如module_init(i2c_init)，预处理之后实际上是
+```c
+static initcall_t __initcall_i2c_init_6 __used __attribute__((__section(".initcall" #id ".init")))` = fn;
+```
+其含义就是将__initcall_i2c_init_6这个函数定义到.initcall6.init这个段中。
+> 坑1， 看gcc section相关文章
+
+而.initcall6.init段定义include/asm-generic/vmlinux.lds.h
+```c
+#define INIT_CALLS                          \
+        VMLINUX_SYMBOL(__initcall_start) = .;           \
+        *(.initcallearly.init)                  \
+        INIT_CALLS_LEVEL(0)                 \
+        INIT_CALLS_LEVEL(1)                 \
+        INIT_CALLS_LEVEL(2)                 \
+        INIT_CALLS_LEVEL(3)                 \
+        INIT_CALLS_LEVEL(4)                 \
+        INIT_CALLS_LEVEL(5)                 \
+        INIT_CALLS_LEVEL(rootfs)                \
+        INIT_CALLS_LEVEL(6)                 \
+        INIT_CALLS_LEVEL(7)                 \
+        VMLINUX_SYMBOL(__initcall_end) = .;
+```
+而在arch/arm/kernel/vmlinux.lds.S中，会调用INIT_CALLS
+```c
+    .init.data : {
+#ifndef CONFIG_XIP_KERNEL
+        INIT_DATA
+#endif
+        INIT_SETUP(16)
+        INIT_CALLS
+        CON_INITCALL
+        SECURITY_INITCALL
+        INIT_RAM_FS
+    }
+#ifndef CONFIG_XIP_KERNEL
+    .exit.data : {
+        ARM_EXIT_KEEP(EXIT_DATA)
+    }
+#endif
+```
+
+initcall分为多个等级，其他的等级定义宏也都在init.h中定义
+```c
+#define pure_initcall(fn)       __define_initcall(fn, 0)
+
+#define core_initcall(fn)       __define_initcall(fn, 1)
+#define core_initcall_sync(fn)      __define_initcall(fn, 1s)
+#define postcore_initcall(fn)       __define_initcall(fn, 2)
+#define postcore_initcall_sync(fn)  __define_initcall(fn, 2s)
+#define arch_initcall(fn)       __define_initcall(fn, 3)
+#define arch_initcall_sync(fn)      __define_initcall(fn, 3s)
+#define subsys_initcall(fn)     __define_initcall(fn, 4)
+#define subsys_initcall_sync(fn)    __define_initcall(fn, 4s)
+#define fs_initcall(fn)         __define_initcall(fn, 5)
+#define fs_initcall_sync(fn)        __define_initcall(fn, 5s)
+#define rootfs_initcall(fn)     __define_initcall(fn, rootfs)
+#define device_initcall(fn)     __define_initcall(fn, 6)
+#define device_initcall_sync(fn)    __define_initcall(fn, 6s)
+#define late_initcall(fn)       __define_initcall(fn, 7)
+#define late_initcall_sync(fn)      __define_initcall(fn, 7s)
+```
+
+这些初始化函数都会在do_initcalls中调用，其调用先后顺序取决于initcall中的等级，级别越小，调用越早。
+
+而级别如何确定，do_initcalls处于初始化的哪一个部分，将在分析Linux初始化文章中详细说明。
+> 坑2， 初始化系列文章
+
 # What is module?
 ## module的结构
 通过上面的example可以编译得到char.ko.
@@ -232,3 +336,6 @@ EXPORT_SYMBOL
 # 参考
 * [编写属于你的第一个Linux内核模块](http://blog.jobbole.com/72115/)
 * /Documentation/kbuild/module.txt
+
+# Licence
+GPL2
